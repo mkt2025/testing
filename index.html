@@ -18,9 +18,9 @@
       background-color: #fff;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
     }
     h1, h3 {
-      text-align: center;
       color: #333;
     }
     ul {
@@ -46,12 +46,13 @@
       margin-top: 10px;
     }
     .loading {
+      display: none;
       text-align: center;
-      display: none; /* Default tersembunyi */
+      margin-top: 10px;
     }
     .loading img {
-      width: 150px; /* Sesuaikan ukuran GIF */
-      height: 150px;
+      width: 100px;
+      height: 100px;
     }
     a {
       color: #007bff;
@@ -72,8 +73,8 @@
         <select id="reciter" onchange="updateAudio()">
           <option value="mtrod">Abdullah Al Mathrud</option>
           <option value="fatih-seferagic">Fatih Seferagic</option>
-          <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal</option>
-          <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Mujawwad</option>
+          <option value="Abdul_Basit_Murattal">Abdul Basit Murattal</option>
+          <option value="Abdul_Basit_Mujawad">Abdul Basit Mujawad</option>
         </select>
       </li>
       <li>
@@ -92,7 +93,7 @@
 
     <h3>Preview:</h3>
     <div class="loading" id="loadingIndicator">
-      <img src="https://i.imgur.com/r1vjyKd.gif" alt="Loading..."> <!-- Gantilah dengan URL atau nama file GIF yang sesuai -->
+      <img src="https://i.imgur.com/r1vjyKd.gif" alt="Loading..."> <!-- Sesuaikan dengan nama file GIF -->
     </div>
     <audio id="audioPlayer" controls preload="auto">
       <source id="audioSource" src="" type="audio/mpeg">
@@ -100,7 +101,7 @@
     </audio>
 
     <div>
-      <input type="checkbox" id="autoplay" onchange="toggleAutoplay()">
+      <input type="checkbox" id="autoplay" onchange="toggleAutoplay()" checked>
       <label for="autoplay">Auto Play</label>
     </div>
 
@@ -116,10 +117,11 @@
     const audioLink = document.getElementById('audioLink');
     const autoplayCheckbox = document.getElementById('autoplay');
     const loadingIndicator = document.getElementById('loadingIndicator');
+    const chapterSelect = document.getElementById('chapter');
 
     function updateAudio() {
       const reciter = document.getElementById('reciter').value;
-      const chapter = document.getElementById('chapter').value;
+      const chapter = chapterSelect.value;
       const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
 
       // Menampilkan efek loading
@@ -161,6 +163,25 @@
       loadingIndicator.style.display = 'none'; // Pastikan loading juga hilang setelah audio siap dimainkan
     });
 
+    // Event Listener untuk auto-play ke chapter berikutnya
+    audioPlayer.addEventListener('ended', () => {
+      if (autoplayCheckbox.checked) {
+        playNextChapter();
+      }
+    });
+
+    function playNextChapter() {
+      let currentIndex = chapterSelect.selectedIndex;
+      let totalOptions = chapterSelect.options.length;
+
+      if (currentIndex < totalOptions - 1) {
+        chapterSelect.selectedIndex = currentIndex + 1; // Pindah ke chapter berikutnya
+      } else {
+        chapterSelect.selectedIndex = 0; // Kembali ke awal jika sudah di akhir
+      }
+
+      updateAudio(); // Putar audio chapter baru
+    }
   </script>
 </body>
 </html>
