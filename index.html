@@ -47,10 +47,11 @@
     }
     .loading {
       text-align: center;
-      font-size: 16px;
-      color: #ff0000;
-      font-weight: bold;
       display: none; /* Default tersembunyi */
+    }
+    .loading img {
+      width: 50px; /* Sesuaikan ukuran GIF */
+      height: 50px;
     }
     a {
       color: #007bff;
@@ -71,8 +72,8 @@
         <select id="reciter" onchange="updateAudio()">
           <option value="mtrod">Abdullah Al Mathrud</option>
           <option value="fatih-seferagic">Fatih Seferagic</option>
-          <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal (192kbps)</option>
-          <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Murattal (64kbps)</option>
+          <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal</option>
+          <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Mujawwad</option>
         </select>
       </li>
       <li>
@@ -90,7 +91,9 @@
     </ul>
 
     <h3>Preview:</h3>
-    <div class="loading" id="loadingText">Loading...</div>
+    <div class="loading" id="loadingIndicator">
+      <img src="https://i.imgur.com/r1vjyKd.gif" alt="Loading..."> <!-- Gantilah dengan URL atau nama file GIF yang sesuai -->
+    </div>
     <audio id="audioPlayer" controls preload="auto">
       <source id="audioSource" src="" type="audio/mpeg">
       Your browser does not support the audio element.
@@ -112,33 +115,25 @@
     const audioSource = document.getElementById('audioSource');
     const audioLink = document.getElementById('audioLink');
     const autoplayCheckbox = document.getElementById('autoplay');
-    const loadingText = document.getElementById('loadingText');
+    const loadingIndicator = document.getElementById('loadingIndicator');
 
     function updateAudio() {
       const reciter = document.getElementById('reciter').value;
       const chapter = document.getElementById('chapter').value;
       const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
 
-      // Menampilkan loading
-      loadingText.style.display = 'block';
+      // Menampilkan efek loading
+      loadingIndicator.style.display = 'block';
 
       // Update audio source
       audioSource.src = audioURL;
       audioLink.href = audioURL;
-      audioPlayer.load();  // Load the new source quickly
+      audioPlayer.load();  
 
-      // Prefetching audio untuk mempercepat pemutaran
-      fetch(audioURL)
-        .then(response => response.blob())
-        .then(blob => {
-          const objectURL = URL.createObjectURL(blob);
-          audioSource.src = objectURL;
-          audioPlayer.load();
-          if (autoplayCheckbox.checked) {
-            playAudio();
-          }
-        })
-        .catch(error => console.error("Audio prefetching failed:", error));
+      // Memastikan autoplay tetap berjalan
+      if (autoplayCheckbox.checked) {
+        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
+      }
     }
 
     function pad(number) {
@@ -147,27 +142,23 @@
 
     function toggleAutoplay() {
       if (autoplayCheckbox.checked) {
-        playAudio();
+        audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
       } else {
-        pauseAudio();
+        audioPlayer.pause();
       }
-    }
-
-    function playAudio() {
-      audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
-    }
-
-    function pauseAudio() {
-      audioPlayer.pause();
     }
 
     // Event Listener untuk menangani efek loading
     audioPlayer.addEventListener('waiting', () => {
-      loadingText.style.display = 'block'; // Tampilkan loading saat audio belum siap
+      loadingIndicator.style.display = 'block'; // Tampilkan loading saat audio belum siap
     });
 
     audioPlayer.addEventListener('playing', () => {
-      loadingText.style.display = 'none'; // Hilangkan loading saat audio mulai diputar
+      loadingIndicator.style.display = 'none'; // Hilangkan loading saat audio mulai diputar
+    });
+
+    audioPlayer.addEventListener('canplay', () => {
+      loadingIndicator.style.display = 'none'; // Pastikan loading juga hilang setelah audio siap dimainkan
     });
 
   </script>
