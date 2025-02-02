@@ -35,7 +35,7 @@
       display: inline-block;
       font-weight: bold;
     }
-    select, input[type="number"] {
+    select {
       padding: 5px;
       width: 200px;
       border-radius: 4px;
@@ -45,11 +45,12 @@
       width: 100%;
       margin-top: 10px;
     }
-    img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 10px auto;
+    .loading {
+      text-align: center;
+      font-size: 16px;
+      color: #ff0000;
+      font-weight: bold;
+      display: none; /* Default tersembunyi */
     }
     a {
       color: #007bff;
@@ -67,16 +68,16 @@
     <ul>
       <li>
         <span class="lead"><b>Reciter</b></span>
-        <select id="reciter" onchange="setURLandImage()">
-          <option value="mtrod">Abdullah al mathrud</option>
-          <option value="fatih-seferagic">Abdul Basit Mujawwad (128kbps)</option>
+        <select id="reciter" onchange="updateAudio()">
+          <option value="mtrod">Abdullah Al Mathrud</option>
+          <option value="fatih-seferagic">Fatih Seferagic</option>
           <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal (192kbps)</option>
           <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Murattal (64kbps)</option>
         </select>
       </li>
       <li>
         <span class="lead"><b>Chapter</b></span>
-        <select id="chapter" onchange="setURLandImage()">
+        <select id="chapter" onchange="updateAudio()">
           <option value="001">1: Al-Faatiha</option>
           <option value="002">2: Al-Baqara</option>
           <option value="003">3: Aal-i-Imraan</option>
@@ -89,6 +90,7 @@
     </ul>
 
     <h3>Preview:</h3>
+    <div class="loading" id="loadingText">Loading...</div>
     <audio id="audioPlayer" controls preload="auto">
       <source id="audioSource" src="" type="audio/mpeg">
       Your browser does not support the audio element.
@@ -106,50 +108,37 @@
   </div>
 
   <script>
-    // Cache untuk menyimpan URL audio yang sudah dimuat
-    const audioCache = {};
+    const audioPlayer = document.getElementById('audioPlayer');
+    const audioSource = document.getElementById('audioSource');
+    const audioLink = document.getElementById('audioLink');
+    const autoplayCheckbox = document.getElementById('autoplay');
+    const loadingText = document.getElementById('loadingText');
 
-    function setURLandImage() {
+    function updateAudio() {
       const reciter = document.getElementById('reciter').value;
       const chapter = document.getElementById('chapter').value;
-
-      // Membuat kunci unik untuk cache
-      const cacheKey = `${reciter}-${chapter}`;
-
-      // Jika audio sudah ada di cache, gunakan yang ada
-      if (audioCache[cacheKey]) {
-        updateAudioPlayer(audioCache[cacheKey]);
-        return;
-      }
-
-      // Jika belum ada di cache, buat URL baru
       const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
 
-      // Simpan URL ke cache
-      audioCache[cacheKey] = audioURL;
+      // Menampilkan loading
+      loadingText.style.display = 'block';
 
-      // Update audio player
-      updateAudioPlayer(audioURL);
-    }
-
-    function updateAudioPlayer(audioURL) {
-      const audioPlayer = document.getElementById('audioPlayer');
-      const audioSource = document.getElementById('audioSource');
-
-      // Hentikan audio yang sedang diputar (jika ada)
-      audioPlayer.pause();
-
-      // Setel sumber audio baru
+      // Update audio source
       audioSource.src = audioURL;
-      audioPlayer.load();
+      audioLink.href = audioURL;
+      audioPlayer.load();  // Load the new source quickly
 
-      // Update tautan unduhan
-      document.getElementById('audioLink').href = audioURL;
-
-      // Jika autoplay diaktifkan, putar audio
-      if (document.getElementById('autoplay').checked) {
-        playAudio();
-      }
+      // Prefetching audio untuk mempercepat pemutaran
+      fetch(audioURL)
+        .then(response => response.blob())
+        .then(blob => {
+          const objectURL = URL.createObjectURL(blob);
+          audioSource.src = objectURL;
+          audioPlayer.load();
+          if (autoplayCheckbox.checked) {
+            playAudio();
+          }
+        })
+        .catch(error => console.error("Audio prefetching failed:", error));
     }
 
     function pad(number) {
@@ -157,7 +146,7 @@
     }
 
     function toggleAutoplay() {
-      if (document.getElementById('autoplay').checked) {
+      if (autoplayCheckbox.checked) {
         playAudio();
       } else {
         pauseAudio();
@@ -165,17 +154,22 @@
     }
 
     function playAudio() {
-      const audioPlayer = document.getElementById('audioPlayer');
       audioPlayer.play().catch(error => console.error("Autoplay failed:", error));
     }
 
     function pauseAudio() {
-      const audioPlayer = document.getElementById('audioPlayer');
       audioPlayer.pause();
     }
 
-    // Memuat audio pertama kali saat halaman dimuat
-    window.onload = setURLandImage;
+    // Event Listener untuk menangani efek loading
+    audioPlayer.addEventListener('waiting', () => {
+      loadingText.style.display = 'block'; // Tampilkan loading saat audio belum siap
+    });
+
+    audioPlayer.addEventListener('playing', () => {
+      loadingText.style.display = 'none'; // Hilangkan loading saat audio mulai diputar
+    });
+
   </script>
 </body>
 </html>
