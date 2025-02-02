@@ -68,7 +68,7 @@
       <li>
         <span class="lead"><b>Reciter</b></span>
         <select id="reciter" onchange="setURLandImage()">
-          <option value="abdul-basit">Abdul Basit Abdul Samad</option>
+          <option value="mtrod">Abdullah al mathrud</option>
           <option value="fatih-seferagic">Abdul Basit Mujawwad (128kbps)</option>
           <option value="Abdul_Basit_Murattal_192kbps">Abdul Basit Murattal (192kbps)</option>
           <option value="Abdul_Basit_Murattal_64kbps">Abdul Basit Murattal (64kbps)</option>
@@ -111,7 +111,7 @@
       const chapter = document.getElementById('chapter').value;
 
       // Construct audio URL
-      const audioURL = `https://podcasts.qurancentral.com/${reciter}/${pad(chapter)}.mp3`;
+      const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
       
       // Update audio player source and link
       document.getElementById('audioSource').src = audioURL;
