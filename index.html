@@ -89,7 +89,7 @@
     </ul>
 
     <h3>Preview:</h3>
-    <audio id="audioPlayer" controls>
+    <audio id="audioPlayer" controls preload="auto">
       <source id="audioSource" src="" type="audio/mpeg">
       Your browser does not support the audio element.
     </audio>
@@ -106,19 +106,47 @@
   </div>
 
   <script>
+    // Cache untuk menyimpan URL audio yang sudah dimuat
+    const audioCache = {};
+
     function setURLandImage() {
       const reciter = document.getElementById('reciter').value;
       const chapter = document.getElementById('chapter').value;
 
-      // Construct audio URL
+      // Membuat kunci unik untuk cache
+      const cacheKey = `${reciter}-${chapter}`;
+
+      // Jika audio sudah ada di cache, gunakan yang ada
+      if (audioCache[cacheKey]) {
+        updateAudioPlayer(audioCache[cacheKey]);
+        return;
+      }
+
+      // Jika belum ada di cache, buat URL baru
       const audioURL = `https://server8.mp3quran.net/download/${reciter}/${pad(chapter)}.mp3`;
-      
-      // Update audio player source and link
-      document.getElementById('audioSource').src = audioURL;
-      document.getElementById('audioPlayer').load();
+
+      // Simpan URL ke cache
+      audioCache[cacheKey] = audioURL;
+
+      // Update audio player
+      updateAudioPlayer(audioURL);
+    }
+
+    function updateAudioPlayer(audioURL) {
+      const audioPlayer = document.getElementById('audioPlayer');
+      const audioSource = document.getElementById('audioSource');
+
+      // Hentikan audio yang sedang diputar (jika ada)
+      audioPlayer.pause();
+
+      // Setel sumber audio baru
+      audioSource.src = audioURL;
+      audioPlayer.load();
+
+      // Update tautan unduhan
       document.getElementById('audioLink').href = audioURL;
 
-      // Check if autoplay is enabled
+      // Jika autoplay diaktifkan, putar audio
       if (document.getElementById('autoplay').checked) {
         playAudio();
       }
@@ -145,6 +173,9 @@
       const audioPlayer = document.getElementById('audioPlayer');
       audioPlayer.pause();
     }
+
+    // Memuat audio pertama kali saat halaman dimuat
+    window.onload = setURLandImage;
   </script>
 </body>
 </html>
